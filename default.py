@@ -1,3 +1,5 @@
+import resources.lib.embed_extractor as embed_extractor
+import re
 import urllib
 import urllib2
 import simplejson
@@ -5,181 +7,226 @@ import xbmcaddon
 import xbmcplugin
 import xbmcgui
 
-API_PATH = 'http://api.animevice.com'
-API_KEY = '13309fcce038ef04a05f2a5e2203b52ed3d47592' # Default API key
-my_addon = xbmcaddon.Addon('plugin.video.animevice')
 
-def CATEGORIES():
-    account_linked = False
-    user_api_key = my_addon.getSetting('api_key')
-    if user_api_key:
-        response = urllib2.urlopen(API_PATH + '/chats/?api_key=' + user_api_key + '&format=json')
-        data = simplejson.loads(response.read())
-        if data['status_code'] == 100:
-            # Revert to the default key
-            my_addon.setSetting('api_key', '')
-        else:
-            global API_KEY
-            API_KEY = user_api_key
-            account_linked = True
+addon_name = 'plugin.video.animeram'
+my_addon = xbmcaddon.Addon(addon_name)
+HANDLE=int(sys.argv[1])
+AB_LIST = [".", "0"] + [chr(i) for i in range(ord("A"), ord("Z")+1)]
 
-    response = urllib2.urlopen(API_PATH + '/video_types/?api_key=' + API_KEY + '&format=json')
-    category_data = simplejson.loads(response.read())['results']
+def post_request(url, data={}):
+    data = urllib.urlencode(data)
+    req = urllib2.Request(url, data)
+    response = urllib2.urlopen(req)
+    response_content = response.read()
     response.close()
+    return response_content
 
-    name = 'Latest'
-    url = API_PATH + '/videos/?api_key=' + API_KEY + '&sort=-publish_date&format=json'
-    iconimage = ''
-    addDir(name, url, 2, '')
+def animeram_url(url=''):
+    return "http://www.animeram.me/%s" % (url)
 
-    for cat in category_data:
-        name = cat['name']
-        url = API_PATH + '/videos/?api_key=' + API_KEY + '&video_type=' + str(cat['id']) + '&sort=-publish_date&format=json'
-        iconimage = ''
-        addDir(name, url, 2, '')
-
-    name = 'Search'
-    iconimage = ''
-    addDir(name, 'search', 1, '')
-
-    if not account_linked:
-        name = 'Link Account'
-        iconimage = ''
-        addDir(name, 'link', 1, '')
-
-def GET_API_KEY(link_code):
-    if link_code and len(link_code) == 6:
-        try:
-            response = urllib2.urlopen(API_PATH + '/validate?link_code=' + link_code + '&format=json')
-            data = simplejson.loads(response.read())
-            new_api_key = data['api_key']
-            my_addon.setSetting('api_key', new_api_key)
-            return True
-        except:
-            return False
-    else:
-        return False
+def addon_url(url=''):
+    return "plugin://%s/%s" % (addon_name, url)
 
 def INDEX(url):
-    if my_addon.getSetting('api_key'):
-        API_KEY = my_addon.getSetting('api_key')
-
-    if url == 'search':
+    payload = "/".join(url.split("/")[1:])
+    if url == '':
+        addDir("Latest", "latest")
+        addDir("List all", "all")
+        addDir("Search", "search")
+    elif url == 'search':
         keyboard = xbmc.Keyboard("", 'Search', False)
         keyboard.doModal()
         if keyboard.isConfirmed():
-            query = keyboard.getText().replace(' ', '%20')
-            url = API_PATH + '/search/?api_key=' + API_KEY + '&resources=video&query=' + query + '&format=json'
-            VIDEOLINKS(url, 'search')
-
-    elif url == 'link':
-        dialog = xbmcgui.Dialog()
-        ok = dialog.ok("Let's do this.", "To link your account, visit", "www.animevice.com/xbmc to get a link code.", "Enter this code on the next screen.")
-
-        keyboard = xbmc.Keyboard("", 'Enter your link code.', False)
-        keyboard.doModal()
-        if keyboard.isConfirmed():
-            link_code = keyboard.getText().upper()
-            if GET_API_KEY(link_code):
-                ok = dialog.ok("Success!", "Your account is now linked!", "If you are a premium member,", "you should now have premium privileges.")
-            else:
-                ok = dialog.ok("We're really sorry, but...", "We could not link your account.", "Make sure the code you entered is correct", "and try again.")
-            CATEGORIES()
-
-def VIDEOLINKS(url, name):
-    if my_addon.getSetting('api_key'):
-        API_KEY = my_addon.getSetting('api_key')
-
-    q_setting = int(my_addon.getSetting('quality'))
-    quality = None
-    if q_setting == 1:
-        quality = 'low_url'
-    elif q_setting == 2:
-        quality = 'high_url'
-
-    response = urllib2.urlopen(url)
-    video_data = simplejson.loads(response.read())['results']
-    response.close()
-
-    for vid in video_data:
-        name = vid['name']
-        if not quality:
-            if 'hd_url' in vid:
-                url = vid['hd_url'] + '&api_key=' + API_KEY
-            else:
-                url = vid['high_url']
+            query = keyboard.getText()
+            SEARCHVIEW(query)
+    elif url.startswith("play"):
+        RESOLUTION_PAGE(payload)
+    elif url.startswith("animes"):
+        ANIMES_PAGE(payload)
+    elif url.startswith("all"):
+        if not len(payload):
+            LIST_ALL_AB()
         else:
-            url = vid[quality]
-        thumbnail = vid['image']['super_url']
-        addLink(name,url,thumbnail)
+            assert PAYLOAD in AB_LIST, "Bad Param"
+            VIDEOLINKS(animeram_url("anime-list-all"), extract_by_letter, payload)
+    elif url == 'latest':
+        VIDEOLINKS(animeram_url(), extract_latest_videos)
 
-def get_params():
-    param=[]
-    paramstring=sys.argv[2]
-    if len(paramstring)>=2:
-        params=sys.argv[2]
-        cleanedparams=params.replace('?','')
-        if (params[len(params)-1]=='/'):
-            params=params[0:len(params)-2]
-        pairsofparams=cleanedparams.split('&')
-        param={}
-        for i in range(len(pairsofparams)):
-            splitparams={}
-            splitparams=pairsofparams[i].split('=')
-            if (len(splitparams))==2:
-                param[splitparams[0]]=splitparams[1]
+def parse_search_result(res):
+    IMAGE_RE = re.compile("<img\ssrc=\"(.+?)\"", re.DOTALL)
+    NAME_LINK_RE = re.compile("<h3><a\shref=\"%s(.+?)/\">(.+?)</a></h3>" % animeram_url(), re.DOTALL)
+    image = IMAGE_RE.findall(res)[0]
+    url, name = NAME_LINK_RE.findall(res)[0]
 
-    return param
+    new_res = {}
+    new_res['is_dir'] = True
+    new_res['info'] = {}
+    new_res['info']['image'] = image
+    new_res['name'] = name
+    new_res['url'] = "animes/" + url + "/"
+    return new_res
 
-def addLink(name, url, iconimage):
+def search_site(search_string):
+    RELEVANT_RESULTS_RE = re.compile("<div\sclass=\"popular\sfull\">\s<table.+?>(.+?)</table>", re.DOTALL)
+    results = post_request("http://www.animeram.me/anime-list/search/",
+            {"cmd_wpa_wgt_anm_sch_sbm": "Search", "txt_wpa_wgt_anm_sch_nme": search_string})
+    all_results = []
+    for result in RELEVANT_RESULTS_RE.findall(results):
+        all_results.append(parse_search_result(result))
+    return all_results
+
+def build_video_list(results):
+    new_results = []
+    for res in results:
+        try:
+            new_res = {}
+            new_res['url'] = embed_extractor.load_video_from_url(res['url'])
+            if new_res['url'] is None:
+                print "Skipping invalid source %s" % res['name']
+                continue # Skip this item
+            new_res['name'] = res['name']
+            new_res['info'] = {}
+            new_res['info']['image'] = ''
+            new_res['is_dir'] = False
+            new_results.append(new_res)
+        except:
+            print "[*E*] Skiping %s because Exception at parsing" % res['name']
+    return new_results
+
+def extract_info(anime_ref):
+    # TODO: Caching
+    IMG_RE = re.compile("<img class=\"cvr\" src=\"(.+?)\"", re.DOTALL)
+    info_url = animeram_url("wpa-ajx/anm-det-pop/?anm=" + anime_ref)
+    res = {'image': ''}
+    info = urllib2.urlopen(info_url).read()
+    image = IMG_RE.findall(info)
+    if len(image) > 0:
+        res['image'] = image[0]
+    return res
+
+def extract_links(resp, extract_image):
+    if extract_image:
+        LINK_RE = re.compile("<a\shref=\"%s([-\w\s\d]+?)/(\d+?)/\".+?rel=\"(\d+)\".+?><strong>(.+?)</strong></a>" % animeram_url(), re.DOTALL)
+    else:
+        LINK_RE = re.compile("<a\shref=\"%s([-\w\s\d]+?)/(\d+?)/\"><strong>(.+?)</strong></a>\s:\s(.*?)</div>" % animeram_url(), re.DOTALL)
+
+    results = []
+    for res in LINK_RE.findall(resp):
+        new_res = {}
+        new_res['is_dir'] = True
+        new_res['info'] = {}
+        new_res['info']['image'] = ''
+        if extract_image:
+            new_res['info'] = extract_info(res[2])
+            new_res['name'] = res[3]
+        else:
+            ep_name = res[3].strip()
+            if len(ep_name):
+                new_res['name'] = "%s : %s" % (res[2] , ep_name)
+            else:
+                new_res['name'] = res[2]
+        new_res['url'] = "play/" + res[0] + "/" + res[1]
+        results.append(new_res)
+    return results
+
+def extract_episodes(resp, context, extract_image=False):
+    LATEST_UL_RE = re.compile("<ul\sclass=\"newmanga\">(.+?)</ul>", re.DOTALL)
+    resp_data = resp.read()
+    new_manga =  LATEST_UL_RE.findall(resp_data)[0]
+    return extract_links(new_manga, extract_image)
+
+def extract_latest_videos(resp, context):
+    return extract_episodes(resp, context, True)
+
+def extract_resolutions(resp, context):
+    SOURCES_UL_RE = re.compile("<ul class=\"video.+?\".+?>(.+?)</ul>", re.DOTALL)
+    LINK_RE = re.compile("<a href=\"%s/(\d+)/\">(.+?)</a>" % animeram_url(context), re.DOTALL)
+    resp_data = resp.read()
+    sources =  SOURCES_UL_RE.findall(resp_data)[1]
+    results = [{'name': res[1], 'url': "%s/%s" % (animeram_url(context), res[0])} for res in LINK_RE.findall(sources)]
+    return build_video_list(results)
+
+def extract_by_letter(resp, context):
+    resp_data = resp.read()
+    FILTERED_RE = re.compile("<a\sname=\"%s\"></a>\s<div\sclass=\"series_alpha\">(.+?)</div>\s</div>" % context, re.DOTALL)
+    filtered = FILTERED_RE.findall(resp_data)[0]
+    RESULTS_RE = re.compile("<a\shref=\"%s([-\w\s\d]+?)/\".+?rel=\"(\d+)\".+?>(.+?)</a>" % animeram_url(), re.DOTALL)
+
+    results = []
+    for res in RESULTS_RE.findall(filtered):
+        new_res = {}
+        new_res['is_dir'] = True
+        new_res['info'] = extract_info(res[1])
+        new_res['name'] = res[2]
+        new_res['url'] = "animes/" + res[0] + "/"
+        results.append(new_res)
+
+    return results
+
+def SEARCHVIEW(search_string):
+    results = search_site(search_string)
+    draw_items(results)
+    return True
+
+def RESOLUTION_PAGE(animeurl):
+    return VIDEOLINKS(animeram_url(animeurl), extract_resolutions, animeurl)
+
+def ANIMES_PAGE(animeurl):
+    return VIDEOLINKS(animeram_url(animeurl), extract_episodes, animeurl)
+
+def draw_items(video_data):
+    for vid in video_data:
+        if vid['is_dir']:
+            addDir(vid['name'], vid['url'], vid['info']['image'])
+        else:
+            addLink(vid['name'], vid['url'], vid['info']['image'])
+    return True
+
+def LIST_ALL_AB():
+    results = []
+    for Letter in AB_LIST:
+        res = {}
+        res['is_dir'] = True
+        res['name'] = Letter
+        res['url'] = "all/%s" % Letter
+        res['info'] = {}
+        res['info']['image'] = ''
+        results.append(res)
+    draw_items(results)
+
+def VIDEOLINKS(url, extractor, context=''):
+    response = urllib2.urlopen(url)
+    video_data = extractor(response, context)
+    response.close()
+    draw_items(video_data)
+
+def addLink(name, url, iconimage=''):
     ok=True
+    if not url.startswith("http://"):
+        url = "RunPlugin(%s)" % addon_url(url)
+
     liz=xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=iconimage)
     liz.setInfo( type="Video", infoLabels={ "Title": name } )
     liz.setProperty("fanart_image", my_addon.getAddonInfo('path') + "/fanart.jpg")
-    ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz)
+    liz.setProperty("IsPlayable", "true")
+    liz.setProperty("Video", "true")
+    liz.addContextMenuItems([], replaceItems=False)
+    ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=url,listitem=liz, isFolder=False)
     return ok
 
-def addDir(name, url, mode, iconimage):
-    u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+def addDir(name, url, iconimage=''):
+    u=addon_url(url)
     ok=True
     liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
     liz.setInfo( type="Video", infoLabels={ "Title": name } )
     liz.setProperty("fanart_image", my_addon.getAddonInfo('path') + "/fanart.jpg")
-    ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
+    ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=u,listitem=liz,isFolder=True)
     return ok
 
-params=get_params()
-url=None
-name=None
-mode=None
+def get_plugin_url():
+    addon_base = addon_url()
+    assert sys.argv[0].startswith(addon_base), "something bad happened in here"
+    return sys.argv[0][len(addon_base):]
 
-try:
-    url=urllib.unquote_plus(params["url"])
-except:
-    pass
-try:
-    name=urllib.unquote_plus(params["name"])
-except:
-    pass
-try:
-    mode=int(params["mode"])
-except:
-    pass
-
-print "Mode: "+str(mode)
-print "URL: "+str(url)
-print "Name: "+str(name)
-
-if mode==None or url==None or len(url)<1:
-    print ""
-    CATEGORIES()
-
-elif mode==1:
-    print ""+url
-    INDEX(url)
-
-elif mode==2:
-    print ""+url
-    VIDEOLINKS(url,name)
-
-xbmcplugin.endOfDirectory(int(sys.argv[1]))
+INDEX(get_plugin_url())
+xbmcplugin.endOfDirectory(HANDLE, succeeded=True, updateListing=False, cacheToDisc=True)
