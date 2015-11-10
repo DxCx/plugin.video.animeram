@@ -2,7 +2,6 @@ import resources.lib.embed_extractor as embed_extractor
 import re
 import urllib
 import urllib2
-import simplejson
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
