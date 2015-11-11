@@ -180,6 +180,7 @@ def xbmc_add_player_item(name, url, iconimage=''):
     liz.setInfo('video', infoLabels={ "Title": name })
     liz.setProperty("fanart_image", ADDON.getAddonInfo('path') + "/fanart.jpg")
     liz.setProperty("Video", "true")
+    liz.setProperty("IsPlayable", "true")
     liz.addContextMenuItems([], replaceItems=False)
     ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=u,listitem=liz, isFolder=False)
     return ok
@@ -194,11 +195,11 @@ def xbmc_add_dir(name, url, iconimage=''):
     return ok
 
 def xbmc_play_source(name, link):
-    p = xbmc.Player()
     liz=xbmcgui.ListItem(name)
-    liz.setInfo('video', infoLabels={ "Title": name })
+    liz.setInfo(type='video', infoLabels={ "Title": name })
     liz.setProperty('video', "true")
-    p.play(link, liz)
+    liz.setPath(link)
+    xbmcplugin.setResolvedUrl(HANDLE, True, liz)
 
 router_process(get_plugin_url())
 xbmcplugin.endOfDirectory(HANDLE, succeeded=True, updateListing=False, cacheToDisc=True)
