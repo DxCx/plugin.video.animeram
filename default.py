@@ -1,10 +1,10 @@
-import resources.lib.embed_extractor as embed_extractor
 import re
 import urllib
 import urllib2
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
+from resources.lib.sourcesList import sourcesList
 
 
 addon_name = 'plugin.video.animeram'
@@ -39,7 +39,7 @@ def INDEX(url):
             query = keyboard.getText()
             SEARCHVIEW(query)
     elif url.startswith("play"):
-        RESOLUTION_PAGE(payload)
+        PLAY(payload)
     elif url.startswith("animes"):
         ANIMES_PAGE(payload)
     elif url.startswith("all"):
@@ -74,24 +74,6 @@ def search_site(search_string):
         all_results.append(parse_search_result(result))
     return all_results
 
-def build_video_list(results):
-    new_results = []
-    for res in results:
-        try:
-            new_res = {}
-            new_res['url'] = embed_extractor.load_video_from_url(res['url'])
-            if new_res['url'] is None:
-                print "Skipping invalid source %s" % res['name']
-                continue # Skip this item
-            new_res['name'] = res['name']
-            new_res['info'] = {}
-            new_res['info']['image'] = ''
-            new_res['is_dir'] = False
-            new_results.append(new_res)
-        except:
-            print "[*E*] Skiping %s because Exception at parsing" % res['name']
-    return new_results
-
 def extract_info(anime_ref):
     # TODO: Caching
     IMG_RE = re.compile("<img class=\"cvr\" src=\"(.+?)\"", re.DOTALL)
@@ -112,7 +94,7 @@ def extract_links(resp, extract_image):
     results = []
     for res in LINK_RE.findall(resp):
         new_res = {}
-        new_res['is_dir'] = True
+        new_res['is_dir'] = False
         new_res['info'] = {}
         new_res['info']['image'] = ''
         if extract_image:
@@ -137,14 +119,6 @@ def extract_episodes(resp, context, extract_image=False):
 def extract_latest_videos(resp, context):
     return extract_episodes(resp, context, True)
 
-def extract_resolutions(resp, context):
-    SOURCES_UL_RE = re.compile("<ul class=\"video.+?\".+?>(.+?)</ul>", re.DOTALL)
-    LINK_RE = re.compile("<a href=\"%s/(\d+)/\">(.+?)</a>" % animeram_url(context), re.DOTALL)
-    resp_data = resp.read()
-    sources =  SOURCES_UL_RE.findall(resp_data)[1]
-    results = [{'name': res[1], 'url': "%s/%s" % (animeram_url(context), res[0])} for res in LINK_RE.findall(sources)]
-    return build_video_list(results)
-
 def extract_by_letter(resp, context):
     resp_data = resp.read()
     FILTERED_RE = re.compile("<a\sname=\"%s\"></a>\s<div\sclass=\"series_alpha\">(.+?)</div>\s</div>" % context, re.DOTALL)
@@ -167,9 +141,6 @@ def SEARCHVIEW(search_string):
     draw_items(results)
     return True
 
-def RESOLUTION_PAGE(animeurl):
-    return VIDEOLINKS(animeram_url(animeurl), extract_resolutions, animeurl)
-
 def ANIMES_PAGE(animeurl):
     return VIDEOLINKS(animeram_url(animeurl), extract_episodes, animeurl)
 
@@ -180,6 +151,19 @@ def draw_items(video_data):
         else:
             addLink(vid['name'], vid['url'], vid['info']['image'])
     return True
+
+def play_source(name, link):
+    p = xbmc.Player()
+    liz=xbmcgui.ListItem(name)
+    liz.setInfo('video', infoLabels={ "Title": name })
+    liz.setProperty('video', "true")
+    p.play(link, liz)
+
+def PLAY(url):
+    s = sourcesList(animeram_url(url))
+    link = s.get_video_link()
+    if link != -1:
+        return play_source(s.name, link)
 
 def LIST_ALL_AB():
     results = []
@@ -201,23 +185,20 @@ def VIDEOLINKS(url, extractor, context=''):
 
 def addLink(name, url, iconimage=''):
     ok=True
-    if not url.startswith("http://"):
-        url = "RunPlugin(%s)" % addon_url(url)
-
+    u=addon_url(url)
     liz=xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=iconimage)
-    liz.setInfo( type="Video", infoLabels={ "Title": name } )
+    liz.setInfo('video', infoLabels={ "Title": name })
     liz.setProperty("fanart_image", my_addon.getAddonInfo('path') + "/fanart.jpg")
-    liz.setProperty("IsPlayable", "true")
     liz.setProperty("Video", "true")
     liz.addContextMenuItems([], replaceItems=False)
-    ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=url,listitem=liz, isFolder=False)
+    ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=u,listitem=liz, isFolder=False)
     return ok
 
 def addDir(name, url, iconimage=''):
-    u=addon_url(url)
     ok=True
+    u=addon_url(url)
     liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-    liz.setInfo( type="Video", infoLabels={ "Title": name } )
+    liz.setInfo('video', infoLabels={ "Title": name })
     liz.setProperty("fanart_image", my_addon.getAddonInfo('path') + "/fanart.jpg")
     ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=u,listitem=liz,isFolder=True)
     return ok
@@ -228,4 +209,4 @@ def get_plugin_url():
     return sys.argv[0][len(addon_base):]
 
 INDEX(get_plugin_url())
-xbmcplugin.endOfDirectory(HANDLE, succeeded=True, updateListing=False, cacheToDisc=True)
+xbmcplugin.endOfDirectory(HANDLE, succeeded=True, updateListing=True, cacheToDisc=True)
