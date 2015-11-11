@@ -10,3 +10,7 @@ And then install addon from zip in kodi.
 this is my first plugin, 
 if someone with experiance with kodi video plugins sees this,
 please contact me, if you feel like wanting to help :)
+
+##Thanks
+* ironic_monkey (Kodi.tv Forums)
+* learning_git (Kodi.tv Forums)
