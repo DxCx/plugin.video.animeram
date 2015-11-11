@@ -1,2 +1,6 @@
+[B]0.0.2[/B]
+- Fixed streaming experience
+- Refactored the code for better understanding
+
 [B]0.0.1[/B]
 - Initial release
