@@ -71,10 +71,10 @@ class AnimeramBrowser(object):
         resp = self._NEWMANGA_CONT_RE.findall(resp)[0]
 
         results = []
-        for res in self._LATEST_LINK_RE.findall(res):
+        for res in self._LATEST_LINK_RE.findall(resp):
             image = self._extract_info(res[2])['image']
             name = res[3]
-            results.append(allocate_item(name, "play/" + res[0] + "/" + res[1], False, image))
+            results.append(self._allocate_item(name, "play/" + res[0] + "/" + res[1], False, image))
         return results
 
     def get_anime_episodes(self, anime_url):
