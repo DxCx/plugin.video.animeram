@@ -1,28 +1,10 @@
-import resources.lib.embed_extractor as embed_extractor
+from resources.lib import embed_extractor
 import re
-import urllib2
 import xbmcgui
 
-class sourcesList(object):
-    _SOURCES_UL_RE = re.compile("<ul class=\"video.+?\".+?>(.+?)</ul>", re.DOTALL)
-    _VIDEO_NAME_RE = re.compile("<h1>(.+?)</h1>", re.DOTALL)
-    def __init__(self, animeram_url):
-        # Fetch the url
-        sources_page = self._fetch_url(animeram_url)
-
-        # Read the name
-        self._name = self._VIDEO_NAME_RE.findall(sources_page)[0]
-
-        # Read the raw sources
-        sources =  self._SOURCES_UL_RE.findall(sources_page)[1]
-        link_regex = re.compile("<a href=\"%s/(\d+)/\">(.+?)</a>" % animeram_url, re.DOTALL)
-        self._raw_results = [(res[1], "%s/%s" % (animeram_url, res[0])) for res in link_regex.findall(sources)]
-
-    def _fetch_url(self, url):
-        response = urllib2.urlopen(url)
-        resp_content = response.read()
-        response.close()
-        return resp_content
+class SourcesList(object):
+    def __init__(self, raw_results):
+        self._raw_results = raw_results
 
     def _fetch_sources(self, sources, dialog):
         fetched_sources = []
