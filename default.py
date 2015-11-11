@@ -133,9 +133,7 @@ def LATEST(payload):
 @route('play/*')
 def PLAY(url):
     s = sourcesList(animeram_url(url))
-    link = s.get_video_link()
-    if link != -1:
-        return xbmc_play_source(s.name, link)
+    return xbmc_play_source(s.get_video_link())
 
 @route('search')
 def SEARCH(payload):
@@ -183,6 +181,7 @@ def xbmc_add_player_item(name, url, iconimage=''):
     liz.setProperty("IsPlayable", "true")
     liz.addContextMenuItems([], replaceItems=False)
     ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=u,listitem=liz, isFolder=False)
+
     return ok
 
 def xbmc_add_dir(name, url, iconimage=''):
@@ -194,12 +193,11 @@ def xbmc_add_dir(name, url, iconimage=''):
     ok=xbmcplugin.addDirectoryItem(handle=HANDLE,url=u,listitem=liz,isFolder=True)
     return ok
 
-def xbmc_play_source(name, link):
-    liz=xbmcgui.ListItem(name)
-    liz.setInfo(type='video', infoLabels={ "Title": name })
-    liz.setProperty('video', "true")
-    liz.setPath(link)
-    xbmcplugin.setResolvedUrl(HANDLE, True, liz)
+def xbmc_play_source(link):
+    if link:
+        xbmcplugin.setResolvedUrl(HANDLE, True, xbmcgui.ListItem(path=link))
+    else:
+        xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
 
 router_process(get_plugin_url())
 xbmcplugin.endOfDirectory(HANDLE, succeeded=True, updateListing=False, cacheToDisc=True)

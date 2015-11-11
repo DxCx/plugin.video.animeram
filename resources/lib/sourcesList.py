@@ -30,14 +30,14 @@ class sourcesList(object):
 
         for i, do in enumerate(sources):
             if dialog.iscanceled():
-                return -1
+                return None
 
             name, url = do
             try:
                 dialog.update(int(i * factor), "Processing %s" % name)
                 fetched_url = embed_extractor.load_video_from_url(url)
                 if fetched_url is not None:
-                    fetched_sources.append(("%d | %s" % (len(fetched_sources) + 1, name), fetched_url))
+                    fetched_sources.append(("%03d | %s" % (len(fetched_sources) + 1, name), fetched_url))
                 else:
                     print "Skipping invalid source %s" % name
                 dialog.update(int(i * factor), "")
@@ -46,10 +46,10 @@ class sourcesList(object):
 
         if not len(fetched_sources):
             # No Valid sources found
-            return -1
+            return None
 
         self._sources = dict(fetched_sources)
-        return 0
+        return True
 
     def _fetch_sources_progress(self, sources):
         dialog = xbmcgui.DialogProgress()
@@ -62,7 +62,7 @@ class sourcesList(object):
     def _read_sources(self):
         if not len(self._raw_results):
             # No Sources to start with
-            return -1
+            return None
 
         return self._fetch_sources_progress(self._raw_results)
 
@@ -71,14 +71,14 @@ class sourcesList(object):
         slist = sorted(self._sources.keys())
         sel = dialog.select("Please choose source: ", slist)
         if sel == -1:
-            return -1
+            return None
         return self._sources[slist[sel]]
 
     def get_video_link(self):
-        if -1 == self._read_sources():
+        if not self._read_sources():
             dialog = xbmcgui.Dialog()
             dialog.notification("Couldn't find eliable sources", "", xbmcgui.NOTIFICATION_ERROR)
-            return -1
+            return None
         return self._select_source()
 
     @property
