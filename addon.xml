@@ -11,9 +11,9 @@
         <provides>video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <platform>all</platform>
-    <summary>Anime Ram video plugin</summary>
-    <description>Anime ram is a great source for almost all animes out there</description>
+    <summary lang="en">Anime Ram video plugin</summary>
+    <description lang="en">Anime ram is a great source for almost all animes out there</description>
     <source>https://github.com/DxCx/plugin.video.animeram</source>
+    <platform>all</platform>
   </extension>
 </addon>

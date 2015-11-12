@@ -1,6 +1,7 @@
 import re
 import urllib2
 import urllib
+from resources.lib import control
 
 class AnimeramBrowser(object):
     _BASE_URL = "http://www.animeram.me"
@@ -30,14 +31,6 @@ class AnimeramBrowser(object):
             res['image'] = image[0]
         return res
 
-    def _allocate_item(self, name, url, is_dir=False, image=''):
-        new_res = {}
-        new_res['is_dir'] = is_dir
-        new_res['image'] = image
-        new_res['name'] = name
-        new_res['url'] = url
-        return new_res
-
     def _post_request(self, url, data={}):
         data = urllib.urlencode(data)
         req = urllib2.Request(url, data)
@@ -55,7 +48,7 @@ class AnimeramBrowser(object):
     def _parse_search_result(self, res):
         image = self._SEARCH_IMAGE_RE.findall(res)[0]
         url, name = self._NAME_LINK_RE.findall(res)[0]
-        return self._allocate_item(name, "animes/" + url + "/", True, image)
+        return control.allocate_item(name, "animes/" + url + "/", True, image)
     
     def search_site(self, search_string):
         print search_string
@@ -74,7 +67,7 @@ class AnimeramBrowser(object):
         for res in self._LATEST_LINK_RE.findall(resp):
             image = self._extract_info(res[2])['image']
             name = res[3]
-            results.append(self._allocate_item(name, "play/" + res[0] + "/" + res[1], False, image))
+            results.append(control.allocate_item(name, "play/" + res[0] + "/" + res[1], False, image))
         return results
 
     def get_anime_episodes(self, anime_url):
@@ -89,7 +82,7 @@ class AnimeramBrowser(object):
             else:
                 name = res[2]
             print name
-            results.append(self._allocate_item(name, "play/" + res[0] + "/" + res[1], False, ''))
+            results.append(control.allocate_item(name, "play/" + res[0] + "/" + res[1], False, ''))
         return results
 
     def get_episode_sources(self, episode_url):
@@ -107,7 +100,7 @@ class AnimeramBrowser(object):
         results = []
         for res in self._ANIME_LIST_RESULTS_RE.findall(filtered):
             info = self._extract_info(res[1])
-            results.append(self._allocate_item(res[2], "animes/" + res[0] + "/", True, info['image']))
+            results.append(control.allocate_item(res[2], "animes/" + res[0] + "/", True, info['image']))
 
         return results
 

@@ -1,3 +1,4 @@
+from resources.lib import control
 from resources.lib import embed_extractor
 import re
 import xbmcgui
@@ -16,7 +17,7 @@ class SourcesList(object):
 
             name, url = do
             try:
-                dialog.update(int(i * factor), "Processing %s" % name)
+                dialog.update(int(i * factor), control.lang(30101) % name)
                 fetched_url = embed_extractor.load_video_from_url(url)
                 if fetched_url is not None:
                     fetched_sources.append(("%03d | %s" % (len(fetched_sources) + 1, name), fetched_url))
@@ -25,6 +26,7 @@ class SourcesList(object):
                 dialog.update(int(i * factor), "")
             except:
                 print "[*E*] Skiping %s because Exception at parsing" % name
+                raise
 
         if not len(fetched_sources):
             # No Valid sources found
@@ -35,7 +37,7 @@ class SourcesList(object):
 
     def _fetch_sources_progress(self, sources):
         dialog = xbmcgui.DialogProgress()
-        dialog.create("Fetching Sources")
+        dialog.create(control.lang(30100))
         ret = self._fetch_sources(sources, dialog)
         dialog.close()
 
@@ -49,9 +51,13 @@ class SourcesList(object):
         return self._fetch_sources_progress(self._raw_results)
 
     def _select_source(self):
+        if len(self._sources) == 1:
+            print "1 source was found, returning it"
+            return self._sources.values()[0]
+
         dialog = xbmcgui.Dialog()
         slist = sorted(self._sources.keys())
-        sel = dialog.select("Please choose source: ", slist)
+        sel = dialog.select(control.lang(30102), slist)
         if sel == -1:
             return None
         return self._sources[slist[sel]]
@@ -59,7 +65,7 @@ class SourcesList(object):
     def get_video_link(self):
         if not self._read_sources():
             dialog = xbmcgui.Dialog()
-            dialog.notification("Couldn't find eliable sources", "", xbmcgui.NOTIFICATION_ERROR)
+            dialog.notification(control.lang(30103), "", xbmcgui.NOTIFICATION_ERROR)
             return None
         return self._select_source()
 
