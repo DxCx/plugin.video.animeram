@@ -26,7 +26,6 @@ class SourcesList(object):
                 dialog.update(int(i * factor), "")
             except:
                 print "[*E*] Skiping %s because Exception at parsing" % name
-                raise
 
         if not len(fetched_sources):
             # No Valid sources found
