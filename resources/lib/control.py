@@ -3,11 +3,19 @@ import xbmc
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
+try:
+    import StorageServer
+except:
+    import storageserverdummy as StorageServer
 
 HANDLE=int(sys.argv[1])
 ADDON_NAME = 'plugin.video.animeram'
 __settings__ = xbmcaddon.Addon(ADDON_NAME)
 __language__ = __settings__.getLocalizedString
+CACHE = StorageServer.StorageServer("%s.animeinfo" % ADDON_NAME, 24)
+
+def cache(funct, *args):
+    return CACHE.cacheFunction(funct, *args)
 
 def lang(x):
     return __language__(x).encode('utf-8')

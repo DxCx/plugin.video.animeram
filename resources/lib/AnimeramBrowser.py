@@ -23,13 +23,14 @@ class AnimeramBrowser(object):
         return "%s/%s" % (self._BASE_URL, url)
 
     def _extract_info(self, anime_ref):
-        # TODO: Caching
-        res = {'image': ''}
-        info = self._get_request(self._to_url("wpa-ajx/anm-det-pop/?anm=" + anime_ref))
-        image = self._INFO_IMG_RE.findall(info)
-        if len(image) > 0:
-            res['image'] = image[0]
-        return res
+        def f(anime_ref):
+            res = {'image': ''}
+            info = self._get_request(self._to_url("wpa-ajx/anm-det-pop/?anm=" + anime_ref))
+            image = self._INFO_IMG_RE.findall(info)
+            if len(image) > 0:
+                res['image'] = image[0]
+            return res
+        return control.cache(f, anime_ref)
 
     def _post_request(self, url, data={}):
         data = urllib.urlencode(data)
