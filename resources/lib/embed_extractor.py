@@ -1,5 +1,7 @@
 import re
+import urllib
 import urllib2
+import urlparse
 
 _EMBED_EXTRACTORS = {}
 
@@ -18,8 +20,59 @@ def load_video_from_url(in_url):
         if embeded_url.startswith(extractor):
             return _EMBED_EXTRACTORS[extractor](embeded_url, page_content)
     print "[*E*] No extractor found for %s" % embeded_url
-    raise Exception("No extractor found for %s" % embeded_url)
+    return None
 
+def _encode_data(data):
+    encmap = ['.', '-']
+    for old in encmap:
+        data = data.replace(old, "%%%02X" % ord(old))
+    return data
+
+def __extract_js_var(content, name):
+    value_re = re.compile("%s=\"(.+?)\";" % name, re.DOTALL)
+    deref_re = re.compile("%s=(.+?);" % name, re.DOTALL)
+    value = value_re.findall(content)
+    if len(value):
+        return value[0]
+
+    deref = deref_re.findall(content)
+    if not len(deref):
+        return "undefined"
+    return __extract_js_var(content, deref[0])
+
+def __extract_swf_player(url, content):
+    domain = __extract_js_var(content, "flashvars\.domain")
+    assert doamin is not "undefined"
+
+    key = __extract_js_var(content, "flashvars\.filekey")
+    filename = __extract_js_var(content, "flashvars\.file")
+    cid, cid2, cid3 = ("undefined", "undefined", "undefined")
+    user, password = ("undefined", "undefined")
+
+    data = {
+            'key': key,
+            'file': filename,
+            'cid': cid,
+            'cid2': cid2,
+            'cid3': cid3,
+            'pass': password,
+            'user': user,
+            'numOfErrors': "0"
+    }
+    token_url = "%s/api/player.api.php?%s" % (domain, urllib.urlencode(data))
+
+    req = urllib2.Request(token_url)
+    req.add_header('Referer', url)
+    req.add_header('X-Requested-With', 'ShockwaveFlash/19.0.0.226')
+    req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
+    video_info = dict(urlparse.parse_qsl(urllib2.urlopen(req).read()))
+
+    if video_info.has_key("error_msg"):
+        print "[*] Error Message: %s" % (video_info["error_msg"])
+    if not video_info.has_key("url"):
+        return None
+    return video_info['url']
+    
 def __register_extractor(url, function):
     _EMBED_EXTRACTORS[url] = function
 
@@ -54,7 +107,8 @@ __register_extractor("http://animebam.com/",
                     __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
 __register_extractor("http://embed.yourupload.com/", 
                     __extractor_factory("file:\s'(.+?)\.mp4',", True))
+__register_extractor("http://embed.videoweed.es/", __extract_swf_player)
+__register_extractor("http://embed.novamov.com/", __extract_swf_player)
+
 # TODO: debug to find how to extract
-__register_extractor("http://embed.videoweed.es/", __ignore_extractor)
-__register_extractor("http://embed.novamov.com/", __ignore_extractor)
 __register_extractor("http://www.animeram.tv/files/ads/160.html", __ignore_extractor)
