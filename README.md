@@ -11,10 +11,10 @@ Kodi Plugin that let's you watch almost all animes for free.
 ##Install
 1. Click on 'Download as zip' to the right of this github page.
 2. Enter Kodi
-2.1 Settings
-2.2 Addons
-2.3 Install from zip
-3. Choose the zip downloaded in option 1
+3. Click on Settings under System
+4. Click on Add-ons to the left
+5. Install from zip
+6. Choose the zip downloaded in option 1
 
 ##Disclaimer
 this is my first plugin, if you have any comment on my coding,
