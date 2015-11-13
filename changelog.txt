@@ -1,3 +1,6 @@
+[B]0.0.4[/B]
+- Added new option to disable image extracting (Reduce time)
+
 [B]0.0.3[/B]
 - Added support for 2 more sources: VideoWeed and NovaMov
 - Added support for cache
