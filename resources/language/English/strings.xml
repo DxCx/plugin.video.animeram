@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
 	<!-- Category strings -->
+	<string id="20000">Extract Images: </string>
+
 	<string id="30000">Latest</string>
 	<string id="30001">List all</string>
 	<string id="30002">Search</string>

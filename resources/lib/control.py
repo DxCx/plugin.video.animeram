@@ -14,6 +14,9 @@ __settings__ = xbmcaddon.Addon(ADDON_NAME)
 __language__ = __settings__.getLocalizedString
 CACHE = StorageServer.StorageServer("%s.animeinfo" % ADDON_NAME, 24)
 
+def getSetting(key):
+    return __settings__.getSetting(key)
+
 def cache(funct, *args):
     return CACHE.cacheFunction(funct, *args)
 

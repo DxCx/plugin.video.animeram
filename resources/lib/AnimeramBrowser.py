@@ -23,6 +23,9 @@ class AnimeramBrowser(object):
         return "%s/%s" % (self._BASE_URL, url)
 
     def _extract_info(self, anime_ref):
+        if 'false' == control.getSetting("extract_images"):
+            return {'image': ''}
+
         def f(anime_ref):
             res = {'image': ''}
             info = self._get_request(self._to_url("wpa-ajx/anm-det-pop/?anm=" + anime_ref))
