@@ -1,6 +1,7 @@
 # plugin.video.animeram - Animeram plugin for kodi
 
 Kodi Plugin that let's you watch almost all animes for free.
+<img src="https://cloud.githubusercontent.com/assets/1080411/11160760/3dac6ff4-8a77-11e5-831b-42e8e9b49a08.png" width="30%"></img> <img src="https://cloud.githubusercontent.com/assets/1080411/11160778/6f3965d6-8a77-11e5-812d-6364ca311c87.png" width="30%"></img> <img src="https://cloud.githubusercontent.com/assets/1080411/11160780/77ebc692-8a77-11e5-8ff1-fdae383bf454.png" width="30%"></img> <img src="https://cloud.githubusercontent.com/assets/1080411/11160779/74bef5c0-8a77-11e5-9000-6499040476ec.png" width="30%"></img> <img src="https://cloud.githubusercontent.com/assets/1080411/11160774/6278ddf4-8a77-11e5-8560-9429daedaf27.png" width="30%"></img> <img src="https://cloud.githubusercontent.com/assets/1080411/11160775/68913aba-8a77-11e5-9100-4ee779487167.png" width="30%"></img> 
 
 ##Features
 * Watch status tracking.
