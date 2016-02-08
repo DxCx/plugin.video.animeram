@@ -1,3 +1,7 @@
+[B]0.0.5[/B]
+- Removed the option to disable image extracting -> not needed anymore.
+- Aligned the crawler after website was updated
+
 [B]0.0.4[/B]
 - Added new option to disable image extracting (Reduce time)
 
