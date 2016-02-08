@@ -7,8 +7,13 @@ _EMBED_EXTRACTORS = {}
 
 def load_video_from_url(in_url):
     IFRAME_RE = re.compile("<iframe.+?src=\"(.+?)\"")
-    page_content = urllib2.urlopen(in_url).read()
+
+    req = urllib2.Request(in_url)
+    req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
+    page_content = urllib2.urlopen(req).read()
     embeded_url = IFRAME_RE.findall(page_content)[0]
+    if embeded_url.startswith("//"):
+        embeded_url = "http:%s" % embeded_url
     try:
         print "Probing source: %s" % embeded_url
         page_content = urllib2.urlopen(embeded_url).read()
@@ -90,6 +95,7 @@ def __extractor_factory(regex, double_ref=False, match=0, debug=False):
         regex_url = re.findall(regex, content, re.DOTALL)[match]
         if double_ref:
             req = urllib2.Request(regex_url)
+            req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
             req.add_header('Referer', url)
             video_url = urllib2.urlopen(req).geturl()
         else:
@@ -104,6 +110,8 @@ __register_extractor("http://mp4upload.com/",
 __register_extractor("http://videonest.net/", 
                     __extractor_factory("\[\{file:\"(.+?)\"\}\],"))
 __register_extractor("http://animebam.com/", 
+                    __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
+__register_extractor("http://www.animebam.net/",
                     __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
 __register_extractor("http://embed.yourupload.com/", 
                     __extractor_factory("file:\s'(.+?)\.mp4',", True))
