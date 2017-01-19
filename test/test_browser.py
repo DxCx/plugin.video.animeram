@@ -24,5 +24,16 @@ class TestBrowser(unittest.TestCase):
             'name': "One Piece 1 : I'm Luffy! The boy who will become the Pirate King!"
         })
 
+    def test_get_anime_list(self):
+        "get_anime_list returns "
+        anime_list = self.browser.get_anime_list('O')
+        self.assertGreater(len(anime_list), 10)
+        self.assertEqual(anime_list[0], {
+            'url': 'animes/oban-star-racers/',
+            'is_dir': True,
+            'image': '',
+            'name': 'Oban Star-Racers'
+        })
+
 if __name__ == "__main__":
     unittest.main()
