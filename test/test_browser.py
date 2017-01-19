@@ -1,5 +1,5 @@
 #!/usr/local/bin/python2
-import redgreenunittest as unittest
+import unittest
 from resources.lib.AnimeramBrowser import AnimeramBrowser
 
 __all__ = [ "TestBrowser" ]
@@ -10,6 +10,7 @@ class TestBrowser(unittest.TestCase):
         self.browser = AnimeramBrowser()
 
     def test_get_latest(self):
+        "get_latest resturns at least 10 items"
         latest = self.browser.get_latest()
         self.assertEqual(len(latest) > 10, True)
 
