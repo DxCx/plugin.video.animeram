@@ -1,5 +1,5 @@
 #!/usr/local/bin/python2
-import unittest
+import redgreenunittest as unittest
 
 __all__ = [ "TestBrowser" ]
 
