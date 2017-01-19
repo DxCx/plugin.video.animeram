@@ -46,5 +46,10 @@ class TestBrowser(unittest.TestCase):
             'name': 'Naruto Shippuden'
         })
 
+    def test_get_episode_sources(self):
+        "get_episode_sources find nartuo's first episode"
+        sources = self.browser.get_episode_sources('naruto-shippuden/1')
+        self.assertGreater(len(sources), 10)
+
 if __name__ == "__main__":
     unittest.main()
