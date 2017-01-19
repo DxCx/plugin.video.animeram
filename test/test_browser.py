@@ -12,7 +12,17 @@ class TestBrowser(unittest.TestCase):
     def test_get_latest(self):
         "get_latest resturns at least 10 items"
         latest = self.browser.get_latest()
-        self.assertEqual(len(latest) > 10, True)
+        self.assertGreater(len(latest), 10)
+
+    def test_get_anime_episodes(self):
+        "get_anime_episodes works for one-piece"
+        episodes = self.browser.get_anime_episodes("one-piece")
+        self.assertEqual(len(episodes) > 750, True)
+        self.assertEqual(episodes[-1], {
+            'url': 'play/one-piece/1',
+            'is_dir': False, 'image': '',
+            'name': "One Piece 1 : I'm Luffy! The boy who will become the Pirate King!"
+        })
 
 if __name__ == "__main__":
     unittest.main()
