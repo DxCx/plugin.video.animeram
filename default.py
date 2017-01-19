@@ -1,4 +1,5 @@
 from resources.lib import control
+from resources.lib import utils
 from resources.lib.SourcesList import SourcesList
 from resources.lib.router import route, router_process
 from resources.lib.AnimeramBrowser import AnimeramBrowser
@@ -27,7 +28,7 @@ def SEARCH(payload):
 
 @route('all')
 def LIST_ALL_AB(payload):
-    return control.draw_items([control.allocate_item(i, "all/%s" % i, True) for i in AB_LIST])
+    return control.draw_items([utils.allocate_item(i, "all/%s" % i, True) for i in AB_LIST])
 
 @route('all/*')
 def SHOW_AB_LISTING(payload):
@@ -41,6 +42,6 @@ def PLAY(url):
 
 @route('')
 def LIST_MENU(payload):
-    return control.draw_items([control.allocate_item(name, url, True) for name, url in MENU_ITEMS])
+    return control.draw_items([utils.allocate_item(name, url, True) for name, url in MENU_ITEMS])
 
 router_process(control.get_plugin_url())
