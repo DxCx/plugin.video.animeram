@@ -4,7 +4,7 @@ import urllib
 from resources.lib import utils
 
 class AnimeramBrowser(object):
-    _BASE_URL = "http://www.animeram.cc"
+    _BASE_URL = "http://ww1.animeram.cc"
     _RELEVANT_RESULTS_RE = re.compile("<a\shref=\"/series/(.+?)\"\sclass=\"mse\">(.+?)</a>", re.DOTALL)
     _SEARCH_IMAGE_RE = re.compile("<img\ssrc=\"(.+?)\"", re.DOTALL)
     _NAME_LINK_RE = re.compile("<h2>(.+?)</h2>", re.DOTALL)
