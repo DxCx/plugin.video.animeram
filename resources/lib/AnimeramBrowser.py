@@ -48,7 +48,6 @@ class AnimeramBrowser(object):
         return utils.allocate_item(name, "animes/" + url + "/", True, image)
 
     def search_site(self, search_string):
-        print search_string
         url = self._to_url("search?%s" % urllib.urlencode({"search": search_string}))
         results = self._get_request(url)
         all_results = []

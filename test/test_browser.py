@@ -35,5 +35,16 @@ class TestBrowser(unittest.TestCase):
             'name': 'Oban Star-Racers'
         })
 
+    def test_search_site(self):
+        "search site finds naruto"
+        search_res = self.browser.search_site("Naruto Shippuden")
+        self.assertGreaterEqual(len(search_res), 1)
+        self.assertEqual(search_res[0], {
+            'url': 'animes/naruto-shippuden/',
+            'is_dir': True,
+            'image': 'http://cdn.oose.io/static/a90ae476e693186276bde3e8d5d7b54c8a91a438/thumbnail.jpeg',
+            'name': 'Naruto Shippuden'
+        })
+
 if __name__ == "__main__":
     unittest.main()
