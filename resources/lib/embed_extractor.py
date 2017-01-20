@@ -84,15 +84,27 @@ def __register_extractor(url, function):
 def __ignore_extractor(url, content):
     return None
 
+def __relative_url(original_url, new_url):
+    if new_url.startswith("http://") or new_url.startswith("https://"):
+        return new_url
+
+    if new_url.startswith("/"):
+        return urlparse.urljoin(original_url, new_url)
+    else:
+        raise Exception("Cannot resolve %s" % new_url)
+
 def __extractor_factory(regex, double_ref=False, match=0, debug=False):
+    compiled_regex = re.compile(regex, re.DOTALL)
+
     def f(url, content):
         if debug:
             print url
             print content
-            print re.findall(regex, content, re.DOTALL)
+            print compiled_regex.findall(content)
             raise
 
-        regex_url = re.findall(regex, content, re.DOTALL)[match]
+        regex_url = compiled_regex.findall(content)[match]
+        regex_url = __relative_url(url, regex_url)
         if double_ref:
             req = urllib2.Request(regex_url)
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
@@ -100,20 +112,22 @@ def __extractor_factory(regex, double_ref=False, match=0, debug=False):
             video_url = urllib2.urlopen(req).geturl()
         else:
             video_url = regex_url
+        video_url = __relative_url(regex_url, video_url)
+
         return video_url
     return f
 
 __register_extractor("http://auengine.com/",
                     __extractor_factory("var\svideo_link\s=\s'(.+?)';"))
-__register_extractor("http://mp4upload.com/", 
+__register_extractor("http://mp4upload.com/",
                     __extractor_factory("'file':\s'(.+?)',"))
-__register_extractor("http://videonest.net/", 
+__register_extractor("http://videonest.net/",
                     __extractor_factory("\[\{file:\"(.+?)\"\}\],"))
-__register_extractor("http://animebam.com/", 
-                    __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
+__register_extractor("http://animebam.com/",
+                    __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
 __register_extractor("http://www.animebam.net/",
-                    __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
-__register_extractor("http://embed.yourupload.com/", 
+                    __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
+__register_extractor("http://embed.yourupload.com/",
                     __extractor_factory("file:\s'(.+?)\.mp4',", True))
 __register_extractor("http://embed.videoweed.es/", __extract_swf_player)
 __register_extractor("http://embed.novamov.com/", __extract_swf_player)
