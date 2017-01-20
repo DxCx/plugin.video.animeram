@@ -47,7 +47,7 @@ def __extract_js_var(content, name):
 
 def __extract_swf_player(url, content):
     domain = __extract_js_var(content, "flashvars\.domain")
-    assert doamin is not "undefined"
+    assert domain is not "undefined"
 
     key = __extract_js_var(content, "flashvars\.filekey")
     filename = __extract_js_var(content, "flashvars\.file")
@@ -120,7 +120,7 @@ def __extractor_factory(regex, double_ref=False, match=0, debug=False):
 __register_extractor("http://auengine.com/",
                     __extractor_factory("var\svideo_link\s=\s'(.+?)';"))
 __register_extractor("http://mp4upload.com/",
-                    __extractor_factory("'file':\s'(.+?)',"))
+                    __extractor_factory("\"file\":\s\"(.+?)\","))
 __register_extractor("http://videonest.net/",
                     __extractor_factory("\[\{file:\"(.+?)\"\}\],"))
 __register_extractor("http://animebam.com/",
