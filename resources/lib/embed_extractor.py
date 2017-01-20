@@ -16,14 +16,15 @@ def load_video_from_url(in_url):
         embeded_url = "http:%s" % embeded_url
     try:
         print "Probing source: %s" % embeded_url
-        page_content = urllib2.urlopen(embeded_url).read()
+        reqObj = urllib2.urlopen(embeded_url)
+        page_content = reqObj.read()
     except urllib2.URLError:
         return None # Dead link, Skip result
     except:
         raise
     for extractor in _EMBED_EXTRACTORS.keys():
         if embeded_url.startswith(extractor):
-            return _EMBED_EXTRACTORS[extractor](embeded_url, page_content)
+            return _EMBED_EXTRACTORS[extractor](reqObj.geturl(), page_content)
     print "[*E*] No extractor found for %s" % embeded_url
     return None
 
@@ -127,8 +128,10 @@ __register_extractor("http://animebam.com/",
                     __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
 __register_extractor("http://www.animebam.net/",
                     __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
+__register_extractor("http://yourupload.com/",
+                     __extractor_factory("file:\s'(.+?\.mp4.*?)',", True))
 __register_extractor("http://embed.yourupload.com/",
-                    __extractor_factory("file:\s'(.+?)\.mp4',", True))
+                     __extractor_factory("file:\s'(.+?\.mp4.*?)',", True))
 __register_extractor("http://embed.videoweed.es/", __extract_swf_player)
 __register_extractor("http://embed.novamov.com/", __extract_swf_player)
 
