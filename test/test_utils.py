@@ -31,10 +31,11 @@ class MockedDialog(object):
 
 class TestUtils(unittest.TestCase):
     def test_fetch_sources(self):
-        "fetch_sources works"
+        "fetch_sources fetches at least 50% of the sources"
         dialog = MockedDialog()
         fetched = utils.fetch_sources(TESTED_SOURCES, dialog, True)
-        self.assertEqual(True, False)
+        # Make sure we have at least 50% hit rate
+        self.assertGreaterEqual(len(fetched), len(TESTED_SOURCES) / 2)
 
 if __name__ == "__main__":
     unittest.main()
