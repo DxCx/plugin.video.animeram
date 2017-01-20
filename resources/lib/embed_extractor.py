@@ -79,8 +79,12 @@ def __extract_swf_player(url, content):
         return None
     return video_info['url']
 
-def __register_extractor(url, function):
-    _EMBED_EXTRACTORS[url] = function
+def __register_extractor(urls, function):
+    if type(urls) is not list:
+        urls = [urls]
+
+    for url in urls:
+        _EMBED_EXTRACTORS[url] = function
 
 def __ignore_extractor(url, content):
     return None
@@ -120,19 +124,21 @@ def __extractor_factory(regex, double_ref=False, match=0, debug=False):
 
 __register_extractor("http://auengine.com/",
                     __extractor_factory("var\svideo_link\s=\s'(.+?)';"))
+
 __register_extractor("http://mp4upload.com/",
                     __extractor_factory("\"file\":\s\"(.+?)\","))
+
 __register_extractor("http://videonest.net/",
                     __extractor_factory("\[\{file:\"(.+?)\"\}\],"))
-__register_extractor("http://animebam.com/",
+
+__register_extractor(["http://animebam.com/", "http://www.animebam.net/"],
                     __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
-__register_extractor("http://www.animebam.net/",
-                    __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
-__register_extractor("http://yourupload.com/",
+
+__register_extractor(["http://yourupload.com/", "http://www.yourupload.com/", "http://embed.yourupload.com/"],
                      __extractor_factory("file:\s'(.+?\.mp4.*?)',", True))
-__register_extractor("http://embed.yourupload.com/",
-                     __extractor_factory("file:\s'(.+?\.mp4.*?)',", True))
+
 __register_extractor("http://embed.videoweed.es/", __extract_swf_player)
+
 __register_extractor("http://embed.novamov.com/", __extract_swf_player)
 
 # TODO: debug to find how to extract
