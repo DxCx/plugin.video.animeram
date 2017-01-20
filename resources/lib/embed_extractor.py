@@ -77,7 +77,7 @@ def __extract_swf_player(url, content):
     if not video_info.has_key("url"):
         return None
     return video_info['url']
-    
+
 def __register_extractor(url, function):
     _EMBED_EXTRACTORS[url] = function
 
