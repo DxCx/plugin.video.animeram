@@ -28,7 +28,7 @@ def fetch_sources(sources, dialog, raise_exceptions=False):
         except Exception, e:
             print "[*E*] Skiping %s because Exception at parsing" % name
             if raise_exceptions:
-                raise e
+                raise
             else:
                 print e
 
