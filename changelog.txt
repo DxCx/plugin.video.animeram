@@ -1,3 +1,7 @@
+[B]0.0.6[/B]
+- Aligned the crawler once again after websites were updated
+- Added Unit-Tests for faster development
+
 [B]0.0.5[/B]
 - Removed the option to disable image extracting -> not needed anymore.
 - Aligned the crawler after website was updated
