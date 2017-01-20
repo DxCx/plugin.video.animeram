@@ -16,14 +16,15 @@ def load_video_from_url(in_url):
         embeded_url = "http:%s" % embeded_url
     try:
         print "Probing source: %s" % embeded_url
-        page_content = urllib2.urlopen(embeded_url).read()
+        reqObj = urllib2.urlopen(embeded_url)
+        page_content = reqObj.read()
     except urllib2.URLError:
         return None # Dead link, Skip result
     except:
         raise
     for extractor in _EMBED_EXTRACTORS.keys():
         if embeded_url.startswith(extractor):
-            return _EMBED_EXTRACTORS[extractor](embeded_url, page_content)
+            return _EMBED_EXTRACTORS[extractor](reqObj.geturl(), page_content)
     print "[*E*] No extractor found for %s" % embeded_url
     return None
 
@@ -47,7 +48,7 @@ def __extract_js_var(content, name):
 
 def __extract_swf_player(url, content):
     domain = __extract_js_var(content, "flashvars\.domain")
-    assert doamin is not "undefined"
+    assert domain is not "undefined"
 
     key = __extract_js_var(content, "flashvars\.filekey")
     filename = __extract_js_var(content, "flashvars\.file")
@@ -77,22 +78,38 @@ def __extract_swf_player(url, content):
     if not video_info.has_key("url"):
         return None
     return video_info['url']
-    
-def __register_extractor(url, function):
-    _EMBED_EXTRACTORS[url] = function
+
+def __register_extractor(urls, function):
+    if type(urls) is not list:
+        urls = [urls]
+
+    for url in urls:
+        _EMBED_EXTRACTORS[url] = function
 
 def __ignore_extractor(url, content):
     return None
 
+def __relative_url(original_url, new_url):
+    if new_url.startswith("http://") or new_url.startswith("https://"):
+        return new_url
+
+    if new_url.startswith("/"):
+        return urlparse.urljoin(original_url, new_url)
+    else:
+        raise Exception("Cannot resolve %s" % new_url)
+
 def __extractor_factory(regex, double_ref=False, match=0, debug=False):
+    compiled_regex = re.compile(regex, re.DOTALL)
+
     def f(url, content):
         if debug:
             print url
             print content
-            print re.findall(regex, content, re.DOTALL)
+            print compiled_regex.findall(content)
             raise
 
-        regex_url = re.findall(regex, content, re.DOTALL)[match]
+        regex_url = compiled_regex.findall(content)[match]
+        regex_url = __relative_url(url, regex_url)
         if double_ref:
             req = urllib2.Request(regex_url)
             req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
@@ -100,22 +117,28 @@ def __extractor_factory(regex, double_ref=False, match=0, debug=False):
             video_url = urllib2.urlopen(req).geturl()
         else:
             video_url = regex_url
+        video_url = __relative_url(regex_url, video_url)
+
         return video_url
     return f
 
 __register_extractor("http://auengine.com/",
                     __extractor_factory("var\svideo_link\s=\s'(.+?)';"))
-__register_extractor("http://mp4upload.com/", 
-                    __extractor_factory("'file':\s'(.+?)',"))
-__register_extractor("http://videonest.net/", 
+
+__register_extractor("http://mp4upload.com/",
+                    __extractor_factory("\"file\":\s\"(.+?)\","))
+
+__register_extractor("http://videonest.net/",
                     __extractor_factory("\[\{file:\"(.+?)\"\}\],"))
-__register_extractor("http://animebam.com/", 
-                    __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
-__register_extractor("http://www.animebam.net/",
-                    __extractor_factory("sources:\s\[\{file:\s\"(.+?)\",", True))
-__register_extractor("http://embed.yourupload.com/", 
-                    __extractor_factory("file:\s'(.+?)\.mp4',", True))
+
+__register_extractor(["http://animebam.com/", "http://www.animebam.net/"],
+                    __extractor_factory("var\svideoSources\s=\s\[\{file:\s\"(.+?)\",", True))
+
+__register_extractor(["http://yourupload.com/", "http://www.yourupload.com/", "http://embed.yourupload.com/"],
+                     __extractor_factory("file:\s'(.+?\.mp4.*?)',", True))
+
 __register_extractor("http://embed.videoweed.es/", __extract_swf_player)
+
 __register_extractor("http://embed.novamov.com/", __extract_swf_player)
 
 # TODO: debug to find how to extract

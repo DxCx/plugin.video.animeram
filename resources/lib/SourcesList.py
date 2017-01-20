@@ -1,5 +1,6 @@
 from resources.lib import control
-from resources.lib import embed_extractor
+from resources.lib.utils import fetch_sources
+from resources.lib.DialogProgressWrapper import DialogProgressWrapper
 import re
 import xbmcgui
 
@@ -8,39 +9,17 @@ class SourcesList(object):
         self._raw_results = raw_results
 
     def _fetch_sources(self, sources, dialog):
-        fetched_sources = []
-        factor = 100.0 / len(sources)
-
-        for i, do in enumerate(sources):
-            if dialog.iscanceled():
-                return None
-
-            name, url = do
-            try:
-                dialog.update(int(i * factor), control.lang(30101) % name)
-                fetched_url = embed_extractor.load_video_from_url(url)
-                if fetched_url is not None:
-                    fetched_sources.append(("%03d | %s" % (len(fetched_sources) + 1, name), fetched_url))
-                else:
-                    print "Skipping invalid source %s" % name
-                dialog.update(int(i * factor), "")
-            except Exception, e:
-                print "[*E*] Skiping %s because Exception at parsing" % name
-                print e
-
-        if not len(fetched_sources):
-            # No Valid sources found
+        fetched_sources = fetch_sources(sources, dialog)
+        if not sources:
             return None
 
-        self._sources = dict(fetched_sources)
+        self._sources = fetched_sources
         return True
 
     def _fetch_sources_progress(self, sources):
-        dialog = xbmcgui.DialogProgress()
-        dialog.create(control.lang(30100))
+        dialog = DialogProgressWrapper(control.lang(30100), control.lang(30101))
         ret = self._fetch_sources(sources, dialog)
         dialog.close()
-
         return ret
 
     def _read_sources(self):
