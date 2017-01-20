@@ -1,24 +1,8 @@
 from resources.lib import control
 from resources.lib.utils import fetch_sources
+from resources.lib.DialogProgressWrapper import DialogProgressWrapper
 import re
 import xbmcgui
-
-class DialogProgressWrapper(object):
-    def __init__(self, title):
-        self._dialog = xbmcgui.DialogProgress()
-        self._dialog.create(control.lang(30100))
-
-    def update(self, precentage, name=None):
-        text = ""
-        if name:
-            text = control.lang(30101) % name
-        return self._dialog.update(precentage, text)
-
-    def iscanceled(self):
-        return self._dialog.iscanceled()
-
-    def close(self):
-        return self._dialog.close()
 
 class SourcesList(object):
     def __init__(self, raw_results):
@@ -33,7 +17,7 @@ class SourcesList(object):
         return True
 
     def _fetch_sources_progress(self, sources):
-        dialog = DialogProgressWrapper()
+        dialog = DialogProgressWrapper(control.lang(30100), control.lang(30101))
         ret = self._fetch_sources(sources, dialog)
         dialog.close()
         return ret
