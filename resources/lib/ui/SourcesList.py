@@ -1,23 +1,33 @@
-from resources.lib import control
-from resources.lib.utils import fetch_sources
-from resources.lib.DialogProgressWrapper import DialogProgressWrapper
+from utils import fetch_sources
+from DialogProgressWrapper import DialogProgressWrapper
 import re
 import xbmcgui
 
 class SourcesList(object):
-    def __init__(self, raw_results):
+    def __init__(self, raw_results, strings = None):
         self._raw_results = raw_results
+        if not strings or not len(strings):
+            strings = {
+                'title': 'Fetching Sources',
+                'processing': 'Processing %s',
+                'choose': 'Please choose source: ',
+                'notfound': 'Couldn\'t find eliable sources',
+            }
+
+        self._strings = strings
+        self._sources = []
 
     def _fetch_sources(self, sources, dialog):
         fetched_sources = fetch_sources(sources, dialog)
-        if not sources:
+        if not fetched_sources:
             return None
 
         self._sources = fetched_sources
         return True
 
     def _fetch_sources_progress(self, sources):
-        dialog = DialogProgressWrapper(control.lang(30100), control.lang(30101))
+        dialog = DialogProgressWrapper(self._strings['title'],
+                                       self._strings['processing'])
         ret = self._fetch_sources(sources, dialog)
         dialog.close()
         return ret
@@ -36,7 +46,7 @@ class SourcesList(object):
 
         dialog = xbmcgui.Dialog()
         slist = sorted(self._sources.keys())
-        sel = dialog.select(control.lang(30102), slist)
+        sel = dialog.select(self._strings['choose'], slist)
         if sel == -1:
             return None
         return self._sources[slist[sel]]
@@ -44,7 +54,7 @@ class SourcesList(object):
     def get_video_link(self):
         if not self._read_sources():
             dialog = xbmcgui.Dialog()
-            dialog.notification(control.lang(30103), "", xbmcgui.NOTIFICATION_ERROR)
+            dialog.notification(self._strings['notfound'], "", xbmcgui.NOTIFICATION_ERROR)
             return None
         return self._select_source()
 

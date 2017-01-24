@@ -1,7 +1,7 @@
 import re
 import urllib2
 import urllib
-from resources.lib import utils
+from ui import utils
 
 class AnimeramBrowser(object):
     _BASE_URL = "http://ww1.animeram.cc"

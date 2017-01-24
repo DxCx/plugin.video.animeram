@@ -1,4 +1,4 @@
-from resources.lib import embed_extractor
+from . import embed_extractor
 
 def allocate_item(name, url, is_dir=False, image=''):
     new_res = {}
