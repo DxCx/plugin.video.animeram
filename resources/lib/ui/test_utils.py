@@ -1,6 +1,6 @@
 #!/usr/local/bin/python2
 import unittest
-from resources.lib.ui import utils
+import utils
 
 TESTED_SOURCES = [
     ('[SUBBED] ABVideo', 'http://ww1.animeram.cc/naruto-shippuden/1/1'),
