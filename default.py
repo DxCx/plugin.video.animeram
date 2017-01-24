@@ -1,7 +1,7 @@
-from resources.lib import control
-from resources.lib import utils
-from resources.lib.SourcesList import SourcesList
-from resources.lib.router import route, router_process
+from resources.lib.ui import control
+from resources.lib.ui import utils
+from resources.lib.ui.SourcesList import SourcesList
+from resources.lib.ui.router import route, router_process
 from resources.lib.AnimeramBrowser import AnimeramBrowser
 
 AB_LIST = [".", "0"] + [chr(i) for i in range(ord("A"), ord("Z")+1)]
@@ -37,7 +37,12 @@ def SHOW_AB_LISTING(payload):
 
 @route('play/*')
 def PLAY(url):
-    s = SourcesList(AnimeramBrowser().get_episode_sources(url))
+    s = SourcesList(AnimeramBrowser().get_episode_sources(url), {
+                        'title': control.lang(30100),
+                        'processing': control.lang(30101),
+                        'choose': control.lang(30102),
+                        'notfound': control.lang(30103),
+    })
     return control.play_source(s.get_video_link())
 
 @route('')
