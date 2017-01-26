@@ -1,9 +1,9 @@
 import re
-import urllib2
-import urllib
 from ui import utils
+from ui import BrowserBase
+from ui import http
 
-class AnimeramBrowser(object):
+class AnimeramBrowser(BrowserBase.BrowserBase):
     _BASE_URL = "http://ww1.animeram.cc"
     _RELEVANT_RESULTS_RE = re.compile("<a\shref=\"/series/(.+?)\"\sclass=\"mse\">(.+?)</a>", re.DOTALL)
     _SEARCH_IMAGE_RE = re.compile("<img\ssrc=\"(.+?)\"", re.DOTALL)
@@ -16,31 +16,6 @@ class AnimeramBrowser(object):
 
     _PLAYER_SOURCES_UL_RE = re.compile("<ul\sclass=\"nav\snav-tabs\">(.+?)</ul>", re.DOTALL)
 
-    def __init__(self):
-        pass
-
-    def _to_url(self, url=''):
-        if url.startswith("/"):
-            url = url[1:]
-        return "%s/%s" % (self._BASE_URL, url)
-
-    def _post_request(self, url, data={}):
-        data = urllib.urlencode(data)
-        req = urllib2.Request(url, data)
-        req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
-        response = urllib2.urlopen(req)
-        response_content = response.read()
-        response.close()
-        return response_content
-
-    def _get_request(self, url):
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36')
-        response = urllib2.urlopen(req)
-        resp = response.read()
-        response.close()
-        return resp
-
     def _parse_search_result(self, res):
         name = self._NAME_LINK_RE.findall(res[1])[0]
         image = "http:%s" % self._SEARCH_IMAGE_RE.findall(res[1])[0]
@@ -48,8 +23,8 @@ class AnimeramBrowser(object):
         return utils.allocate_item(name, "animes/" + url + "/", True, image)
 
     def search_site(self, search_string):
-        url = self._to_url("search?%s" % urllib.urlencode({"search": search_string}))
-        results = self._get_request(url)
+        url = self._to_url("search")
+        results = self._get_request(url, {"search": search_string})
         all_results = []
         for result in self._RELEVANT_RESULTS_RE.findall(results):
             all_results.append(self._parse_search_result(result))

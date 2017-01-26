@@ -10,7 +10,7 @@ class TestBrowser(unittest.TestCase):
         self.browser = AnimeramBrowser()
 
     def test_get_latest(self):
-        "get_latest resturns at least 10 items"
+        "get_latest returns at least 10 items"
         latest = self.browser.get_latest()
         self.assertGreater(len(latest), 10)
 
